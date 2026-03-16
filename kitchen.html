@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunu Resto - Écran Cuisine</title>
+    <style>
+        /* Reset et styles de base */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+
+        body { 
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff; 
+            height: 100vh;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Conteneur principal */
+        .container { 
+            max-width: 100%;
+            margin: 0 auto;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* Logo et en-tête */
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo svg {
+            display: block;
+            margin: 0 auto 15px;
+        }
+
+        h1 { 
+            color: #ff6b6b; 
+            margin-bottom: 8px;
+            font-size: 2.2rem;
+            text-shadow: 0 2px 10px rgba(255, 107, 107, 0.3);
+        }
+
+        .subtitle {
+            color: #aaa;
+            font-size: 1rem;
+        }
+
+        /* Barre de statut */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(51, 51, 51, 0.8);
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #444;
+        }
+
+        /* Conteneur principal des commandes */
+        .orders-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 15px;
+            height: calc(100vh - 320px);
+            overflow-y: auto;
+            padding-right: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* Barre de défilement */
+        .orders-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .orders-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        .orders-container::-webkit-scrollbar-thumb {
+            background: #ff6b6b;
+            border-radius: 4px;
+        }
+
+        /* Carte de commande */
+        .order-card {
+            background: rgba(34, 34, 34, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            border: 2px solid;
+            position: relative;
+            overflow: hidden;
+            min-height: 280px;
+        }
+
+        .order-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+        }
+
+        .order-card.pending {
+            border-color: #ffa502;
+        }
+
+        .order-card.pending::before {
+            background: #ffa502;
+        }
+
+        .order-card.preparing {
+            border-color: #1e90ff;
+        }
+
+        .order-card.preparing::before {
+            background: #1e90ff;
+        }
+
+        .order-card.ready {
+            border-color: #2ed573;
+            animation: readyGlow 2s infinite alternate;
+        }
+
+        .order-card.ready::before {
+            background: #2ed573;
+        }
+
+        .order-card.served {
+            border-color: #9b59b6;
+            opacity: 0.8;
+        }
+
+        .order-card.served::before {
+            background: #9b59b6;
+        }
+
+        @keyframes readyGlow {
+            from { box-shadow: 0 0 20px rgba(46, 213, 115, 0.3); }
+            to { box-shadow: 0 0 30px rgba(46, 213, 115, 0.6); }
+        }
+
+        .order-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* En-tête de commande */
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #444;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+        }
+
+        .order-id {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #ffa502;
+        }
+
+        .order-table {
+            background: #ffa502;
+            color: #222;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .served-badge {
+            background: #9b59b6;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Informations client */
+        .order-client {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .client-name {
+            color: #ffa502;
+            font-weight: 600;
+        }
+
+        /* Liste des articles */
+        .order-items {
+            margin-bottom: 15px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-quantity {
+            background: #1e90ff;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        .item-name {
+            flex: 1;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .item-price {
+            color: #2ed573;
+            font-weight: 600;
+            min-width: 70px;
+            text-align: right;
+            font-size: 0.95rem;
+        }
+
+        /* Total et minuteur */
+        .order-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 2px solid #444;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        .order-total {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #ff6b6b;
+        }
+
+        .order-timer {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #aaa;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .order-timer.urgent {
+            animation: blink 1s infinite;
+            color: #ff6b6b !important;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .timer-value {
+            font-weight: bold;
+            color: #1e90ff;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Actions */
+        .order-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #1e90ff 0%, #0066cc 100%);
+            color: white;
+        }
+
+        .btn-ready {
+            background: linear-gradient(135deg, #2ed573 0%, #1e9e4d 100%);
+            color: white;
+        }
+
+        .btn-served {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .btn-served:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(155, 89, 182, 0.4);
+        }
+
+        /* Aucune commande */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: calc(100vh - 320px);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        /* Statistiques */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s;
+        }
+
+        .stat-card.highlight {
+            background: rgba(46, 213, 115, 0.1);
+            border-color: #2ed573;
+        }
+
+        .stat-card.served-highlight {
+            background: rgba(155, 89, 182, 0.1);
+            border-color: #9b59b6;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ff6b6b;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #aaa;
+            font-size: 0.8rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .orders-container {
+                grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+                height: calc(100vh - 300px);
+            }
+            
+            .stats-bar {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .orders-container {
+                grid-template-columns: 1fr;
+                height: calc(100vh - 320px);
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .order-card {
+                min-height: 250px;
+            }
+        }
+
+        /* Animation pour nouvelle commande */
+        @keyframes newOrder {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .new-order {
+            animation: newOrder 0.5s ease;
+        }
+
+        /* Panneau des commandes prêtes */
+        .ready-orders-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 380px;
+            height: 100vh;
+            background: linear-gradient(135deg, #16213e 0%, #0f1a2e 100%);
+            border-left: 3px solid #2ed573;
+            padding: 20px;
+            overflow-y: auto;
+            z-index: 100;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .ready-orders-panel.active {
+            transform: translateX(0);
+        }
+
+        /* Panneau des commandes servies */
+        .served-orders-panel {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 380px;
+            height: 100vh;
+            background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+            border-right: 3px solid #9b59b6;
+            padding: 20px;
+            overflow-y: auto;
+            z-index: 100;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .served-orders-panel.active {
+            transform: translateX(0);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #2ed573;
+        }
+
+        .served-panel .panel-header {
+            border-bottom-color: #9b59b6;
+        }
+
+        .panel-header h3 {
+            color: #2ed573;
+            font-size: 1.4rem;
+        }
+
+        .served-panel .panel-header h3 {
+            color: #9b59b6;
+        }
+
+        .close-panel {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px 10px;
+        }
+
+        /* Badge des commandes prêtes */
+        .ready-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #2ed573;
+            color: #000;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(46, 213, 115, 0.3);
+            z-index: 99;
+            animation: pulse 2s infinite;
+        }
+
+        /* Badge des commandes servies */
+        .served-badge-ui {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #9b59b6;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(155, 89, 182, 0.3);
+            z-index: 99;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Notification dot */
+        .notification-dot {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 12px;
+            height: 12px;
+            background: #ff6b6b;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+
+        /* Animation pour nouvelles commandes servies */
+        @keyframes slideInServed {
+            0% { transform: translateX(-50px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        .new-served {
+            animation: slideInServed 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo Sunu Resto -->
+        <div class="logo">
+            <svg width="120" height="120" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#F7DC6F" />
+                        <stop offset="100%" stop-color="#D4AC0D" />
+                    </linearGradient>
+                </defs>
+                
+                <circle cx="100" cy="100" r="90" fill="url(#goldGrad)" stroke="#B7950B" stroke-width="2"/>
+                <circle cx="100" cy="100" r="55" fill="#FFFFFF" stroke="#D4AC0D" stroke-width="2"/>
+                
+                <g stroke="#D4AC0D" stroke-width="2" stroke-linecap="round">
+                    <path d="M85,85 Q100,70 115,85 Q120,100 110,110 Q100,115 90,110 Q80,100 85,85" fill="none"/>
+                </g>
+                
+                <circle cx="100" cy="55" r="4" fill="#D4AC0D"/>
+                <circle cx="145" cy="100" r="4" fill="#D4AC0D"/>
+                <circle cx="100" cy="145" r="4" fill="#D4AC0D"/>
+                <circle cx="55" cy="100" r="4" fill="#D4AC0D"/>
+                
+                <text x="100" y="105" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#D4AC0D">SR</text>
+            </svg>
+            
+            <h1>☀️ SUNU RESTO</h1>
+            <p class="subtitle">Système de gestion cuisine • Commandes en temps réel</p>
+        </div>
+        
+        <!-- Barre de statut -->
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="status-dot"></div>
+                <span id="connection-status">Connexion au serveur en cours...</span>
+            </div>
+            <div class="time-display" id="current-time">--:--:--</div>
+        </div>
+        
+        <!-- Conteneur des commandes -->
+        <div class="orders-container" id="orders-container">
+            <div class="empty-state" id="empty-state">
+                <i class="fas fa-utensils"></i>
+                <h3>Aucune commande en attente</h3>
+                <p>Les nouvelles commandes apparaîtront ici automatiquement</p>
+            </div>
+        </div>
+        
+        <!-- Statistiques -->
+        <div class="stats-bar">
+            <div class="stat-card" id="stat-pending-card">
+                <div class="stat-value" id="stat-pending">0</div>
+                <div class="stat-label">En attente</div>
+            </div>
+            <div class="stat-card" id="stat-preparing-card">
+                <div class="stat-value" id="stat-preparing">0</div>
+                <div class="stat-label">En préparation</div>
+            </div>
+            <div class="stat-card" id="stat-ready-card">
+                <div class="stat-value" id="stat-ready">0</div>
+                <div class="stat-label">Prêtes à servir</div>
+            </div>
+            <div class="stat-card" id="stat-served-card">
+                <div class="stat-value" id="stat-served">0</div>
+                <div class="stat-label">Servies aujourd'hui</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Badge des commandes prêtes -->
+    <div class="ready-badge" id="ready-badge" style="display: none;">
+        <i class="fas fa-bell"></i>
+        <span id="ready-count">0</span> commandes prêtes
+    </div>
+
+    <!-- Badge des commandes servies -->
+    <div class="served-badge-ui" id="served-badge">
+        <i class="fas fa-history"></i>
+        <span id="served-count">0</span> commandes servies
+    </div>
+
+    <!-- Panneau des commandes prêtes -->
+    <div class="ready-orders-panel" id="ready-panel">
+        <div class="panel-header">
+            <h3><i class="fas fa-check-circle"></i> Commandes Prêtes à Servir</h3>
+            <button class="close-panel" id="close-ready-panel">&times;</button>
+        </div>
+        <div id="ready-orders-list">
+            <!-- Les commandes prêtes seront ajoutées ici -->
+        </div>
+    </div>
+
+    <!-- Panneau des commandes servies -->
+    <div class="served-orders-panel served-panel" id="served-panel">
+        <div class="panel-header">
+            <h3><i class="fas fa-check-double"></i> Commandes Servies</h3>
+            <button class="close-panel" id="close-served-panel">&times;</button>
+        </div>
+        <div id="served-orders-list">
+            <!-- Les commandes servies seront ajoutées ici -->
+        </div>
+    </div>
+
+    <!-- Sons d'alerte -->
+    <audio id="new-order-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="ready-order-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-magic-sparkles-300.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="served-order-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Scripts -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Variables globales
+        let orders = [];
+        let readyOrders = [];
+        let servedOrders = [];
+        let socket;
+        let connectionStatus = document.getElementById('connection-status');
+        let ordersContainer = document.getElementById('orders-container');
+        let emptyState = document.getElementById('empty-state');
+        let currentTimeElement = document.getElementById('current-time');
+        
+        // Sons
+        const newOrderSound = document.getElementById('new-order-sound');
+        const readyOrderSound = document.getElementById('ready-order-sound');
+        const servedOrderSound = document.getElementById('served-order-sound');
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            initSocketConnection();
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+            
+            // Événements des panneaux
+            document.getElementById('ready-badge').addEventListener('click', () => {
+                document.getElementById('ready-panel').classList.add('active');
+            });
+            
+            document.getElementById('served-badge').addEventListener('click', () => {
+                document.getElementById('served-panel').classList.add('active');
+            });
+            
+            document.getElementById('close-ready-panel').addEventListener('click', () => {
+                document.getElementById('ready-panel').classList.remove('active');
+            });
+            
+            document.getElementById('close-served-panel').addEventListener('click', () => {
+                document.getElementById('served-panel').classList.remove('active');
+            });
+            
+            // Initialiser le point de statut
+            const statusDot = document.getElementById('status-dot');
+            if (statusDot) {
+                statusDot.style.width = '15px';
+                statusDot.style.height = '15px';
+                statusDot.style.borderRadius = '50%';
+                statusDot.style.backgroundColor = '#ff6b6b';
+                statusDot.style.display = 'inline-block';
+                statusDot.style.marginRight = '10px';
+            }
+        });
+        
+        // Connexion Socket.io
+        function initSocketConnection() {
+            socket = io();
+            
+            socket.on('connect', () => {
+                connectionStatus.textContent = '✅ Connecté au serveur';
+                const statusDot = document.getElementById('status-dot');
+                if (statusDot) statusDot.style.backgroundColor = '#2ed573';
+                socket.emit('joinKitchen');
+            });
+            
+            socket.on('disconnect', () => {
+                connectionStatus.textContent = '❌ Déconnecté du serveur';
+                const statusDot = document.getElementById('status-dot');
+                if (statusDot) statusDot.style.backgroundColor = '#ff6b6b';
+            });
+            
+            socket.on('initialOrders', (initialOrders) => {
+                orders = initialOrders.filter(order => order.status === 'pending' || order.status === 'preparing');
+                readyOrders = initialOrders.filter(order => order.status === 'ready');
+                servedOrders = initialOrders.filter(order => order.status === 'served');
+                renderAllOrders();
+                updateReadyOrdersPanel();
+                updateServedOrdersPanel();
+                updateStats();
+            });
+            
+            socket.on('displayOrder', (newOrder) => {
+                const existingIndex = orders.findIndex(order => order.id === newOrder.id);
+                
+                if (existingIndex === -1) {
+                    orders.unshift(newOrder);
+                    renderOrder(newOrder, true);
+                    playSound(newOrderSound);
+                    showNotification(`Nouvelle commande #${newOrder.id} - Table ${newOrder.tableNumber}`, 'new');
+                } else {
+                    orders[existingIndex] = newOrder;
+                    updateOrderCard(newOrder);
+                }
+                
+                updateStats();
+                hideEmptyState();
+            });
+            
+            socket.on('orderStatusUpdated', (updatedOrder) => {
+                const index = orders.findIndex(order => order.id === updatedOrder.id);
+                
+                if (updatedOrder.status === 'ready') {
+                    // Déplacer vers les commandes prêtes
+                    if (index !== -1) {
+                        orders.splice(index, 1);
+                        readyOrders.push(updatedOrder);
+                        document.getElementById(`order-${updatedOrder.id}`)?.remove();
+                    }
+                    updateReadyOrdersPanel();
+                    playSound(readyOrderSound);
+                    showNotification(`Commande #${updatedOrder.id} est prête !`, 'ready');
+                } else if (updatedOrder.status === 'served') {
+                    // Déplacer vers les commandes servies
+                    const readyIndex = readyOrders.findIndex(order => order.id === updatedOrder.id);
+                    if (readyIndex !== -1) {
+                        readyOrders.splice(readyIndex, 1);
+                        servedOrders.push(updatedOrder);
+                        updateServedOrdersPanel();
+                        playSound(servedOrderSound);
+                        showNotification(`Commande #${updatedOrder.id} a été servie !`, 'served');
+                    }
+                } else {
+                    // Mise à jour normale
+                    if (index !== -1) {
+                        orders[index] = updatedOrder;
+                        updateOrderCard(updatedOrder);
+                    }
+                }
+                
+                updateStats();
+            });
+            
+            socket.on('orderServed', (orderId) => {
+                // Gérer la notification de commande servie
+                const order = [...orders, ...readyOrders].find(o => o.id === orderId);
+                if (order) {
+                    const servedIndex = readyOrders.findIndex(o => o.id === orderId);
+                    if (servedIndex !== -1) {
+                        const servedOrder = readyOrders.splice(servedIndex, 1)[0];
+                        servedOrder.status = 'served';
+                        servedOrders.push(servedOrder);
+                        updateReadyOrdersPanel();
+                        updateServedOrdersPanel();
+                        playSound(servedOrderSound);
+                        showNotification(`Commande #${orderId} a été servie !`, 'served');
+                        updateStats();
+                    }
+                }
+            });
+        }
+        
+        // Rendu de toutes les commandes
+        function renderAllOrders() {
+            ordersContainer.innerHTML = '';
+            
+            if (orders.length === 0) {
+                showEmptyState();
+                return;
+            }
+            
+            hideEmptyState();
+            
+            // Trier les commandes par statut et date
+            const sortedOrders = [...orders].sort((a, b) => {
+                const statusOrder = { 'pending': 1, 'preparing': 2 };
+                const aStatus = a.status || 'pending';
+                const bStatus = b.status || 'pending';
+                
+                if (statusOrder[aStatus] !== statusOrder[bStatus]) {
+                    return statusOrder[aStatus] - statusOrder[bStatus];
+                }
+                
+                return new Date(b.timestamp) - new Date(a.timestamp);
+            });
+            
+            sortedOrders.forEach(order => renderOrder(order, false));
+        }
+        
+        // Rendu d'une commande individuelle
+        function renderOrder(order, isNew = false) {
+            if (emptyState.style.display !== 'none') {
+                hideEmptyState();
+            }
+            
+            const orderCard = document.createElement('div');
+            orderCard.className = `order-card ${order.status || 'pending'} ${isNew ? 'new-order' : ''}`;
+            orderCard.id = `order-${order.id}`;
+            orderCard.dataset.createdAt = order.timestamp;
+            
+            const total = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            const itemsHTML = order.items.map(item => `
+                <div class="order-item">
+                    <div style="display: flex; align-items: center;">
+                        <div class="item-quantity">${item.quantity}</div>
+                        <div class="item-name">${item.name}</div>
+                    </div>
+                    <div class="item-price">${(item.price * item.quantity).toFixed(2)} FCFA</div>
+                </div>
+            `).join('');
+            
+            orderCard.innerHTML = `
+                <div class="order-header">
+                    <div class="order-id">#${order.id}</div>
+                    <div class="order-table">Table ${order.tableNumber}</div>
+                </div>
+                
+                <div class="order-client">
+                    Client: <span class="client-name">${order.customerName || 'Non spécifié'}</span>
+                </div>
+                
+                <div class="order-items">
+                    ${itemsHTML}
+                </div>
+                
+                <div class="order-footer">
+                    <div class="order-total">${total.toFixed(2)} FCFA</div>
+                    <div class="order-timer" id="timer-${order.id}">
+                        <span class="timer-value">${formatTimeSince(order.timestamp)}</span>
+                    </div>
+                </div>
+                
+                <div class="order-actions">
+                    <button class="btn btn-start" onclick="updateOrderStatus(${order.id}, 'preparing')">
+                        <i class="fas fa-play-circle"></i> Commencer
+                    </button>
+                    <button class="btn btn-ready" onclick="updateOrderStatus(${order.id}, 'ready')">
+                        <i class="fas fa-check-circle"></i> Signaler Prêt
+                    </button>
+                </div>
+            `;
+            
+            ordersContainer.prepend(orderCard);
+            startTimer(order.id);
+        }
+        
+        // Mettre à jour une carte de commande existante
+        function updateOrderCard(order) {
+            const existingCard = document.getElementById(`order-${order.id}`);
+            if (existingCard) {
+                existingCard.className = `order-card ${order.status || 'pending'}`;
+                
+                const startBtn = existingCard.querySelector('.btn-start');
+                const readyBtn = existingCard.querySelector('.btn-ready');
+                
+                if (order.status === 'preparing') {
+                    startBtn.disabled = true;
+                    startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> En cours...';
+                    startBtn.style.opacity = '0.7';
+                }
+            }
+        }
+        
+        // Mettre à jour le statut d'une commande
+        function updateOrderStatus(orderId, status) {
+            socket.emit('updateOrderStatus', { orderId, status });
+            
+            const card = document.getElementById(`order-${orderId}`);
+            if (card) {
+                card.classList.add('new-order');
+                setTimeout(() => card.classList.remove('new-order'), 500);
+            }
+        }
+        
+        // Mettre à jour le panneau des commandes prêtes
+        function updateReadyOrdersPanel() {
+            const readyList = document.getElementById('ready-orders-list');
+            const readyBadge = document.getElementById('ready-badge');
+            const readyCount = document.getElementById('ready-count');
+            
+            readyList.innerHTML = '';
+            
+            if (readyOrders.length === 0) {
+                readyBadge.style.display = 'none';
+                readyCount.textContent = '0';
+                readyList.innerHTML = `
+                    <div class="empty-state" style="height: auto; padding: 40px 20px;">
+                        <i class="fas fa-check-circle" style="color: #2ed573;"></i>
+                        <h3>Aucune commande prête</h3>
+                        <p>Les commandes signalées comme prêtes apparaîtront ici</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Afficher le badge
+            readyBadge.style.display = 'flex';
+            readyCount.textContent = readyOrders.length;
+            
+            // Trier par ancienneté (les plus récentes en premier)
+            const sortedReadyOrders = [...readyOrders].sort((a, b) => 
+                new Date(b.timestamp) - new Date(a.timestamp)
+            );
+            
+            sortedReadyOrders.forEach(order => {
+                const readyCard = document.createElement('div');
+                readyCard.className = 'order-card ready';
+                
+                const total = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                
+                readyCard.innerHTML = `
+                    <div class="notification-dot"></div>
+                    <div class="order-header">
+                        <div class="order-id">#${order.id}</div>
+                        <div class="order-table">Table ${order.tableNumber}</div>
+                    </div>
+                    
+                    <div class="order-client">
+                        Client: <span class="client-name">${order.customerName || 'Non spécifié'}</span>
+                    </div>
+                    
+                    <div class="order-items">
+                        ${order.items.map(item => `
+                            <div class="order-item">
+                                <div style="display: flex; align-items: center;">
+                                    <div class="item-quantity">${item.quantity}</div>
+                                    <div class="item-name">${item.name}</div>
+                                </div>
+                                <div class="item-price">${(item.price * item.quantity).toFixed(2)} FCFA</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="order-footer">
+                        <div class="order-total">${total.toFixed(2)} FCFA</div>
+                        <div class="order-timer">
+                            <span class="timer-value">${formatTimeSince(order.timestamp)}</span>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-served" onclick="markAsServed(${order.id})">
+                        <i class="fas fa-check-double"></i> Marquer comme Servie
+                    </button>
+                `;
+                
+                readyList.appendChild(readyCard);
+            });
+        }
+        
+        // Mettre à jour le panneau des commandes servies
+        function updateServedOrdersPanel() {
+            const servedList = document.getElementById('served-orders-list');
+            const servedBadge = document.getElementById('served-badge');
+            const servedCount = document.getElementById('served-count');
+            
+            servedList.innerHTML = '';
+            
+            if (servedOrders.length === 0) {
+                servedBadge.style.display = 'flex';
+                servedCount.textContent = '0';
+                servedList.innerHTML = `
+                    <div class="empty-state" style="height: auto; padding: 40px 20px;">
+                        <i class="fas fa-history" style="color: #9b59b6;"></i>
+                        <h3>Aucune commande servie</h3>
+                        <p>Les commandes marquées comme servies apparaîtront ici</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Afficher le badge
+            servedBadge.style.display = 'flex';
+            servedCount.textContent = servedOrders.length;
+            
+            // Trier par ancienneté (les plus récentes en premier)
+            const sortedServedOrders = [...servedOrders].sort((a, b) => 
+                new Date(b.timestamp) - new Date(a.timestamp)
+            ).slice(0, 20); // Limiter à 20 commandes
+            
+            sortedServedOrders.forEach((order, index) => {
+                const servedCard = document.createElement('div');
+                servedCard.className = 'order-card served new-served';
+                
+                const total = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const servedTime = order.servedTimestamp ? new Date(order.servedTimestamp) : new Date();
+                const servedTimeStr = servedTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                
+                servedCard.innerHTML = `
+                    <div class="order-header">
+                        <div class="order-id">#${order.id}</div>
+                        <div class="served-badge">Servie à ${servedTimeStr}</div>
+                    </div>
+                    
+                    <div class="order-client">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Client: <span class="client-name">${order.customerName || 'Non spécifié'}</span></span>
+                            <span>Table: ${order.tableNumber}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="order-items">
+                        ${order.items.slice(0, 3).map(item => `
+                            <div class="order-item">
+                                <div style="display: flex; align-items: center;">
+                                    <div class="item-quantity">${item.quantity}</div>
+                                    <div class="item-name">${item.name}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                        ${order.items.length > 3 ? `<div style="text-align: center; color: #aaa; padding: 5px;">+ ${order.items.length - 3} autres articles</div>` : ''}
+                    </div>
+                    
+                    <div class="order-footer">
+                        <div class="order-total">${total.toFixed(2)} FCFA</div>
+                        <div style="color: #aaa; font-size: 0.9rem;">
+                            ${formatTimeSince(order.timestamp)}
+                        </div>
+                    </div>
+                `;
+                
+                servedList.appendChild(servedCard);
+            });
+        }
+        
+        // Marquer une commande comme servie
+        function markAsServed(orderId) {
+            socket.emit('markAsServed', { orderId, servedTimestamp: new Date() });
+            
+            const index = readyOrders.findIndex(order => order.id === orderId);
+            if (index !== -1) {
+                const servedOrder = readyOrders.splice(index, 1)[0];
+                servedOrder.status = 'served';
+                servedOrder.servedTimestamp = new Date();
+                servedOrders.unshift(servedOrder);
+                updateReadyOrdersPanel();
+                updateServedOrdersPanel();
+                updateStats();
+                playSound(servedOrderSound);
+                showNotification(`Commande #${orderId} marquée comme servie !`, 'served');
+            }
+        }
+        
+        // Formatage du temps écoulé
+        function formatTimeSince(timestamp) {
+            const now = new Date();
+            const orderTime = new Date(timestamp);
+            const diffMs = now - orderTime;
+            const diffMinutes = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMinutes / 60);
+            
+            // Ajouter une classe "urgent" si plus de 30 minutes
+            if (diffMinutes > 30) {
+                const timer = document.getElementById(`timer-${orderId}`);
+                if (timer) timer.classList.add('urgent');
+            }
+            
+            if (diffHours > 0) {
+                return `${diffHours}h ${diffMinutes % 60}min`;
+            } else if (diffMinutes > 0) {
+                return `${diffMinutes} min`;
+            } else {
+                return '< 1 min';
+            }
+        }
+        
+        // Minuteur pour chaque commande
+        function startTimer(orderId) {
+            updateTimerDisplay(orderId);
+            setInterval(() => updateTimerDisplay(orderId), 60000);
+        }
+        
+        function updateTimerDisplay(orderId) {
+            const timerElement = document.getElementById(`timer-${orderId}`);
+            if (!timerElement) return;
+            
+            const card = document.getElementById(`order-${orderId}`);
+            if (!card) return;
+            
+            const createdAt = new Date(card.dataset.createdAt);
+            timerElement.querySelector('.timer-value').textContent = formatTimeSince(createdAt);
+        }
+        
+        // Mettre à jour les statistiques
+        function updateStats() {
+            const pendingCount = orders.filter(order => !order.status || order.status === 'pending').length;
+            const preparingCount = orders.filter(order => order.status === 'preparing').length;
+            const readyCount = readyOrders.length;
+            const servedCount = servedOrders.length;
+            const totalCount = orders.length + readyOrders.length + servedOrders.length;
+            
+            // Mettre à jour les valeurs
+            document.getElementById('stat-pending').textContent = pendingCount;
+            document.getElementById('stat-preparing').textContent = preparingCount;
+            document.getElementById('stat-ready').textContent = readyCount;
+            document.getElementById('stat-served').textContent = servedCount;
+            
+            // Mettre en évidence si des commandes sont prêtes ou servies
+            const readyCard = document.getElementById('stat-ready-card');
+            const servedCard = document.getElementById('stat-served-card');
+            
+            if (readyCount > 0) {
+                readyCard.classList.add('highlight');
+            } else {
+                readyCard.classList.remove('highlight');
+            }
+            
+            if (servedCount > 0) {
+                servedCard.classList.add('served-highlight');
+            } else {
+                servedCard.classList.remove('served-highlight');
+            }
+        }
+        
+        // Gestion de l'état vide
+        function showEmptyState() {
+            emptyState.style.display = 'flex';
+        }
+        
+        function hideEmptyState() {
+            emptyState.style.display = 'none';
+        }
+        
+        // Mise à jour de l'heure
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('fr-FR', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+            currentTimeElement.textContent = timeString;
+        }
+        
+        // Jouer un son
+        function playSound(audioElement) {
+            audioElement.currentTime = 0;
+            audioElement.play().catch(e => console.log("Lecture audio bloquée"));
+        }
+        
+        // Notification visuelle avec type
+        function showNotification(message, type = 'info') {
+            const colors = {
+                'new': 'linear-gradient(135deg, #1e90ff 0%, #0066cc 100%)',
+                'ready': 'linear-gradient(135deg, #2ed573 0%, #1e9e4d 100%)',
+                'served': 'linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%)',
+                'info': 'linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%)'
+            };
+            
+            const icons = {
+                'new': 'fas fa-bell',
+                'ready': 'fas fa-check-circle',
+                'served': 'fas fa-check-double',
+                'info': 'fas fa-info-circle'
+            };
+            
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${colors[type] || colors.info};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 10px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+                z-index: 1000;
+                animation: slideInDown 0.5s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            `;
+            
+            notification.innerHTML = `
+                <i class="${icons[type] || icons.info}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutUp 0.5s ease';
+                setTimeout(() => document.body.removeChild(notification), 500);
+            }, 3000);
+            
+            // Ajouter l'animation CSS si nécessaire
+            if (!document.querySelector('#notification-animations')) {
+                const style = document.createElement('style');
+                style.id = 'notification-animations';
+                style.textContent = `
+                    @keyframes slideInDown {
+                        from { transform: translate(-50%, -100%); opacity: 0; }
+                        to { transform: translate(-50%, 0); opacity: 1; }
+                    }
+                    @keyframes slideOutUp {
+                        from { transform: translate(-50%, 0); opacity: 1; }
+                        to { transform: translate(-50%, -100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+</body>
+</html>
